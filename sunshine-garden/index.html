@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>☀️ 阳光花园 · 自律打卡</title>
+<style>
+  /* ============================================================
+     全局变量 & 基础样式
+     ============================================================ */
+  :root {
+    --sky: #cfe8ff;          /* 天空蓝 */
+    --sky-deep: #a8d4f5;
+    --grass: #8fd08a;        /* 草地绿 */
+    --grass-deep: #6fbf74;
+    --sun: #ffd23f;          /* 阳光黄 */
+    --sun-deep: #f5b81d;
+    --pink: #ffb3c6;         /* 治愈粉 */
+    --ink: #3a4a5a;          /* 文字深灰蓝 */
+    --card: #ffffff;
+    --shadow: 0 6px 20px rgba(60, 90, 130, .12);
+    --radius: 22px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body { min-height: 100%; }
+
+  body {
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+                 "Noto Sans SC", -apple-system, "Segoe UI", sans-serif;
+    background: linear-gradient(180deg, var(--sky) 0%, var(--sky-deep) 45%, var(--grass) 45.1%, var(--grass-deep) 100%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1.5;
+    padding: 20px 12px 60px;
+  }
+
+  /* ============================================================
+     主容器
+     ============================================================ */
+  .app {
+    max-width: 980px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+  }
+
+  h2 {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: #2b3a4a;
+  }
+  h2 .sub { font-size: 15px; font-weight: normal; color: #8a9aa8; margin-left: auto; }
+
+  /* ============================================================
+     头部：标题 + 小狗 + 姓名
+     ============================================================ */
+  header.card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, #fff7e0, #fff);
+  }
+  .title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #2b3a4a;
+    letter-spacing: 1px;
+  }
+  .title small { display: block; font-size: 14px; font-weight: normal; color: #8a9aa8; letter-spacing: 0; }
+  .dog {
+    font-size: 52px;
+    animation: bob 2.4s ease-in-out infinite;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.12));
+  }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+  .student {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .student input {
+    font-size: 18px;
+    font-family: inherit;
+    padding: 8px 12px;
+    border: 2px solid #e5eef6;
+    border-radius: 14px;
+    width: 140px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .student input:focus { border-color: var(--sun-deep); }
+  #greeting { width: 100%; font-size: 15px; color: #6a7a88; }
+
+  /* ============================================================
+     阳光面板
+     ============================================================ */
+  .sun-panel {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .sun-stat {
+    background: linear-gradient(160deg, #fff3c4, #ffe08a);
+    border-radius: 18px;
+    padding: 12px 10px;
+    text-align: center;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,.06);
+  }
+  .sun-stat .label { font-size: 13px; color: #8a6d1a; }
+  .sun-stat .value { font-size: 30px; font-weight: 800; color: #7a5c00; }
+  .sun-stat .value.unit { font-size: 20px; }
+  .sun-stat.big { background: linear-gradient(160deg, #ffe27a, #ffd23f); }
+  .sun-stat.big .value { color: #6b4d00; font-size: 34px; }
+  .pulse { animation: pulse .5s ease; }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+  /* ============================================================
+     任务清单
+     ============================================================ */
+  .tasks .progress { font-size: 16px; font-weight: 700; color: #4a8a5a; }
+  .task-list { display: flex; flex-direction: column; gap: 10px; }
+  .task-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 16px;
+    background: #f7fbfd;
+    border: 2px solid #e5eef6;
+    transition: all .25s;
+    cursor: pointer;
+    user-select: none;
+  }
+  .task-card:active { transform: scale(.98); }
+  .task-card.done {
+    background: #eafbea;
+    border-color: #9fdfa3;
+  }
+  .task-emoji { font-size: 34px; }
+  .task-info { flex: 1; }
+  .task-name { font-size: 20px; font-weight: 700; }
+  .task-card.done .task-name { text-decoration: line-through; color: #7aa27e; }
+  .task-points { font-size: 14px; color: #c98a00; font-weight: 700; }
+  .task-check {
+    font-size: 34px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    transition: transform .2s;
+  }
+  .task-check:hover { transform: scale(1.2); }
+
+  /* ============================================================
+     花园
+     ============================================================ */
+  .garden {
+    background: linear-gradient(180deg, #d6f0d8, #bde6c0);
+    position: relative;
+    overflow: hidden;
+  }
+  .garden-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .dog-guard { font-size: 46px; animation: bob 2.4s ease-in-out infinite; }
+  .dog-bubble {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #4a5a6a;
+    box-shadow: var(--shadow);
+    max-width: 300px;
+  }
+  .dog-bubble::after {
+    content: ""; position: absolute; left: -8px; top: 50%;
+    transform: translateY(-50%);
+    border: 8px solid transparent; border-right-color: #fff;
+  }
+  .garden-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    gap: 10px;
+  }
+  .slot {
+    aspect-ratio: 1 / 1.1;
+    background: #eaf6ea;
+    border: 3px dashed #b9dcbb;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    transition: all .25s;
+    position: relative;
+  }
+  .slot.filled { border-style: solid; border-color: #8fd08a; background: #f3fbf3; }
+  .slot-empty { font-size: 26px; opacity: .55; }
+  .plant { font-size: 44px; animation: pop .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+  .plant-health { font-size: 13px; letter-spacing: 1px; }
+  .plant-name { font-size: 12px; color: #5a7a5a; font-weight: 700; }
+  .plant-buttons { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .plant-buttons button {
+    flex: 1;
+    min-width: 150px;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: inherit;
+    padding: 14px;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 0 5px 0 rgba(0,0,0,.15);
+    transition: all .15s;
+  }
+  .plant-buttons button:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.15); }
+  .btn-sunflower { background: linear-gradient(160deg, #ffd23f, #f5a623); }
+  .btn-pea { background: linear-gradient(160deg, #7bc96f, #4c9f57); }
+  .garden.bloom::before {
+    content: "🌸🌼🦋✨";
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; letter-spacing: 8px;
+    background: rgba(255,255,255,.25);
+    animation: bloom 2s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes bloom { from { opacity: .3; } to { opacity: .85; } }
+
+  /* ============================================================
+     僵尸威慑区
+     ============================================================ */
+  .zombie { position: relative; }
+  .zombie-track {
+    position: relative;
+    height: 90px;
+    background: linear-gradient(180deg, #e8f2e8, #d3e6d3);
+    border-radius: 16px;
+    margin-top: 6px;
+  }
+  .track-house { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 40px; }
+  .zombie-emoji {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    transition: left 1s ease, opacity .6s;
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,.15));
+  }
+  .zombie-emoji::after { content: "🌺"; position: absolute; top: -8px; right: -6px; font-size: 16px; }
+  .threat-bar {
+    height: 16px;
+    background: #eef3ee;
+    border-radius: 10px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  .threat-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #8fd08a, #ffd23f, #ff7a7a);
+    border-radius: 10px;
+    transition: width 1s ease;
+  }
+  .zombie-msg { margin-top: 10px; font-size: 17px; font-weight: 700; text-align: center; color: #4a5a6a; }
+
+  /* ============================================================
+     兑换中心
+     ============================================================ */
+  .reward-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .reward-card {
+    border: 2px solid #f0e2b6;
+    border-radius: 18px;
+    padding: 14px;
+    background: linear-gradient(160deg, #fffdf5, #fff6dd);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all .2s;
+  }
+  .reward-card.off { opacity: .5; filter: grayscale(.7); }
+  .reward-head { display: flex; align-items: center; gap: 8px; }
+  .reward-emoji { font-size: 34px; }
+  .reward-name { font-size: 19px; font-weight: 800; }
+  .reward-desc { font-size: 14px; color: #8a7a4a; }
+  .reward-cost { font-size: 18px; font-weight: 800; color: #c98a00; }
+  .reward-actions { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+  .reward-actions .redeem {
+    flex: 1;
+    font-size: 17px; font-weight: 700; font-family: inherit;
+    padding: 11px;
+    border: none; border-radius: 12px; cursor: pointer;
+    background: linear-gradient(160deg, #ffd23f, #f5a623);
+    color: #6b4d00;
+    box-shadow: 0 4px 0 rgba(0,0,0,.12);
+    transition: all .15s;
+  }
+  .reward-actions .redeem:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.12); }
+  .reward-actions .redeem:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+  .toggle {
+    position: relative; width: 52px; height: 30px;
+    background: #d6dee6; border-radius: 20px; cursor: pointer;
+    border: none; transition: background .2s; flex-shrink: 0;
+  }
+  .toggle.on { background: #7bc96f; }
+  .toggle::after {
+    content: ""; position: absolute; top: 3px; left: 3px;
+    width: 24px; height: 24px; background: #fff; border-radius: 50%;
+    transition: left .2s;
+  }
+  .toggle.on::after { left: 25px; }
+  .redeem-log { margin-top: 12px; font-size: 14px; color: #8a7a4a; }
+
+  /* ============================================================
+     学习记录
+     ============================================================ */
+  .records-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow: auto; }
+  .records-list li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 12px; background: #f7fbfd;
+    font-size: 15px;
+  }
+  .rec-date { font-weight: 700; color: #4a5a6a; white-space: nowrap; }
+  .rec-done { color: #4a8a5a; font-weight: 700; }
+  .rec-earn { margin-left: auto; color: #c98a00; font-weight: 700; }
+  .rec-badge { font-size: 12px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+  .rec-badge.finish { background: #eafbea; color: #3a8a4a; }
+  .rec-badge.part { background: #fff3c4; color: #9a7a00; }
+
+  /* ============================================================
+     反馈动画：漂浮阳光 / 彩带 / 提示 / 抖动
+     ============================================================ */
+  .float-sun {
+    position: absolute; right: 12px; top: 8px;
+    font-size: 26px; font-weight: 800; color: #b8860b;
+    pointer-events: none;
+    animation: floatUp 1.5s ease-out forwards;
+    z-index: 5;
+  }
+  @keyframes floatUp {
+    0% { opacity: 0; transform: translateY(10px) scale(.6); }
+    25% { opacity: 1; transform: translateY(0) scale(1.1); }
+    100% { opacity: 0; transform: translateY(-46px) scale(1); }
+  }
+  .celebration { position: fixed; inset: 0; pointer-events: none; z-index: 1000; overflow: hidden; }
+  .confetti {
+    position: absolute; top: -20px; width: 12px; height: 12px;
+    border-radius: 3px; animation: fall linear forwards;
+  }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    background: rgba(43,58,74,.95); color: #fff;
+    padding: 13px 22px; border-radius: 40px; font-size: 17px; font-weight: 700;
+    opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s;
+    z-index: 1100; max-width: 90vw; text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+  .shake { animation: shake .4s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%,60% { transform: translateX(-8px); }
+    40%,80% { transform: translateX(8px); }
+  }
+
+  footer { text-align: center; font-size: 13px; color: #f0f7f0; }
+  footer button {
+    background: none; border: none; color: #f0f7f0; text-decoration: underline;
+    cursor: pointer; font-size: 13px; font-family: inherit; opacity: .85;
+  }
+
+  /* ============================================================
+     响应式：小屏幕
+     ============================================================ */
+  @media (max-width: 560px) {
+    body { font-size: 16px; padding: 14px 8px 50px; }
+    .title { font-size: 22px; }
+    .dog { font-size: 40px; }
+    .student { width: 100%; margin-left: 0; }
+    .student input { flex: 1; width: auto; }
+    h2 { font-size: 21px; }
+    .sun-stat .value { font-size: 24px; }
+    .sun-stat.big .value { font-size: 28px; }
+  }
+  /* ============================================================
+     连续打卡 / 成就徽章 / 家长模式弹窗
+     ============================================================ */
+  .streak {
+    width: 100%;
+    font-size: 16px;
+    font-weight: 700;
+    color: #e0701a;
+  }
+  .badge-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: 10px;
+  }
+  .badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 6px;
+    border-radius: 16px;
+    background: #f7fbfd;
+    border: 2px solid #e5eef6;
+    transition: all .2s;
+    text-align: center;
+  }
+  .badge.unlocked { background: #fff7dc; border-color: #ffd23f; }
+  .badge.locked { opacity: .45; filter: grayscale(.9); }
+  .badge-emoji { font-size: 30px; }
+  .badge-name { font-size: 13px; font-weight: 700; color: #4a5a6a; }
+  .badge.locked .badge-name::after { content: " 🔒"; font-size: 10px; }
+
+  footer button.ghost {
+    background: rgba(255,255,255,.18);
+    border: none; color: #f0f7f0;
+    padding: 6px 14px; border-radius: 20px; cursor: pointer;
+    font-size: 13px; font-family: inherit; font-weight: 700;
+  }
+  .footer-actions { margin-top: 8px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(43,58,74,.5);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 1200;
+  }
+  .modal-mask.show { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: #fff; border-radius: 22px; padding: 24px;
+    width: min(90vw, 340px); box-shadow: 0 20px 50px rgba(0,0,0,.25);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .modal-title { font-size: 20px; font-weight: 800; text-align: center; }
+  .modal input {
+    font-size: 22px; font-family: inherit; text-align: center;
+    padding: 12px; border: 2px solid #e5eef6; border-radius: 14px; outline: none;
+    letter-spacing: 6px;
+  }
+  .modal input:focus { border-color: var(--sun-deep); }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions button {
+    flex: 1; font-size: 17px; font-weight: 700; font-family: inherit;
+    padding: 12px; border: none; border-radius: 12px; cursor: pointer;
+  }
+  .modal-actions .ok { background: linear-gradient(160deg, #ffd23f, #f5a623); color: #6b4d00; }
+  .modal-actions .cancel { background: #eef3f6; color: #5a6a7a; }
+</style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===================== 头部：标题 / 小狗 / 姓名 ===================== -->
+    <header class="card">
+      <div class="title">☀️ 阳光花园<small>植物大战僵尸 · 治愈版</small></div>
+      <div class="dog">🐶</div>
+      <div class="student">
+        <span>👧 学生：</span>
+        <input id="nameInput" placeholder="输入你的名字" maxlength="12">
+      </div>
+      <div id="greeting"></div>
+      <div id="streak" class="streak"></div>
+    </header>
+
+    <!-- ===================== 阳光积分面板 ===================== -->
+    <section class="sun-panel" id="sunPanel">
+      <div class="sun-stat big">
+        <div class="label">☀️ 可用阳光</div>
+        <div class="value" id="balance">0</div>
+      </div>
+      <div class="sun-stat">
+        <div class="label">今日获得</div>
+        <div class="value" id="todayEarned">0</div>
+      </div>
+      <div class="sun-stat">
+        <div class="label">历史累计</div>
+        <div class="value" id="totalEarned">0</div>
+      </div>
+    </section>
+
+    <!-- ===================== 每日任务清单 ===================== -->
+    <section class="card tasks">
+      <h2>📋 今日任务 <span class="sub progress">完成 <span id="taskProgress">0</span> / 3</span></h2>
+      <div class="task-list" id="taskList"></div>
+    </section>
+
+    <!-- ===================== 花园可视化 ===================== -->
+    <section class="card garden" id="garden">
+      <div class="garden-top">
+        <div class="dog-guard">🐶</div>
+        <div class="dog-bubble" id="dogBubble">汪！</div>
+      </div>
+      <div class="garden-grid" id="gardenGrid"></div>
+      <div class="plant-buttons">
+        <button class="btn-sunflower" id="plantSunflower">🌻 种向日葵 · 10☀️</button>
+        <button class="btn-pea" id="plantPea">🫛 种豌豆射手 · 20☀️</button>
+      </div>
+    </section>
+
+    <!-- ===================== 僵尸威慑可视化 ===================== -->
+    <section class="card zombie">
+      <h2>🧟 僵尸威胁</h2>
+      <div class="zombie-track">
+        <div class="track-house">🌷</div>
+        <div class="zombie-emoji" id="zombie">🧟</div>
+      </div>
+      <div class="threat-bar"><div class="threat-fill" id="threatFill"></div></div>
+      <div class="zombie-msg" id="zombieMsg"></div>
+    </section>
+
+    <!-- ===================== 兑换中心 ===================== -->
+    <section class="card rewards">
+      <h2>🎁 兑换中心</h2>
+      <div class="reward-list" id="rewardList"></div>
+      <div class="redeem-log" id="redeemLog"></div>
+    </section>
+
+    <!-- ===================== 荣誉墙（连续打卡 + 成就徽章） ===================== -->
+    <section class="card honors">
+      <h2>🏆 荣誉墙</h2>
+      <div class="badge-row" id="achievementList"></div>
+    </section>
+
+    <!-- ===================== 学习记录 ===================== -->
+    <section class="card records">
+      <h2>📖 学习记录</h2>
+      <ul class="records-list" id="recordsList"></ul>
+    </section>
+
+    <footer>
+      🌱 每天坚持一点点，花园越来越繁茂！
+      <div class="footer-actions">
+        <button class="ghost" id="parentBtn">🔒 家长模式</button>
+        <button class="ghost" id="changePinBtn" style="display:none;">修改密码</button>
+        <button class="ghost" id="resetBtn">重置所有数据</button>
+      </div>
+    </footer>
+  </div>
+
+  <div class="celebration" id="celebration"></div>
+  <div id="toast"></div>
+
+  <!-- 家长密码弹窗 -->
+  <div class="modal-mask" id="modalMask">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">🔒 家长验证</div>
+      <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="输入家长密码">
+      <div class="modal-actions">
+        <button class="cancel" id="modalCancel">取消</button>
+        <button class="ok" id="modalOk">确定</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ================================================================
+   阳光花园 · 自律打卡 —— 逻辑层
+   分层结构：
+     1. CONFIG     —— 所有可配置常量（积分/植物/奖励/僵尸参数）
+     2. Store      —— 本地数据读写（LocalStorage）
+     3. State      —— 运行时状态
+     4. 业务逻辑   —— 任务/种植/兑换/僵尸推进
+     5. 渲染层     —— 各模块渲染函数
+     6. 反馈动画   —— 漂浮阳光/彩带/提示
+     7. 初始化     —— 载入、每日重置、定时器
+   ================================================================ */
+
+/* ================================================================
+   1. 常量配置（集中管理，方便后续迭代）
+   ================================================================ */
+
+// 每日固定任务 & 积分 —— 【固定数值，不可改动】
+const TASKS = [
+  { id: 'lianzi',  name: '语文练字',         emoji: '✍️', points: 30 },
+  { id: 'kousuan', name: '数学口算 / 习题',  emoji: '🧮', points: 20 },
+  { id: 'yuedu',   name: '课外阅读 20 分钟', emoji: '📖', points: 20 },
+];
+
+// 可种植植物（阳光成本 + 展示）
+const PLANTS = {
+  sunflower: { name: '向日葵',   emoji: '🌻', cost: 10 },
+  pea:       { name: '豌豆射手', emoji: '🫛', cost: 20 },
+};
+
+// 内置兑换奖励（固定模板，可手动开启/关闭）
+const REWARDS = [
+  { id: 'tv',     name: '30 分钟自由娱乐', emoji: '📺', cost: 100,
+    desc: '看电视 / 休闲游戏', onKey: 'tv' },
+  { id: 'outing', name: '周末欢乐奖励',     emoji: '🧺', cost: 200,
+    desc: '户外游玩 或 零食（二选一）', onKey: 'outing' },
+];
+
+// 成就徽章（自动解锁，长期激励）
+const ACHIEVEMENTS = [
+  { id: 'first',   name: '初次打卡', emoji: '🌱', desc: '完成第一天全部任务', check: s => s.records.some(r => r.finished) },
+  { id: 'sun100',  name: '阳光富翁', emoji: '☀️', desc: '历史累计获得 100 阳光', check: s => s.totalEarned >= 100 },
+  { id: 'streak3', name: '坚持三天', emoji: '🔥', desc: '连续 3 天全部完成', check: s => computeStreak() >= 3 },
+  { id: 'streak7', name: '一周之星', emoji: '🌟', desc: '连续 7 天全部完成', check: s => computeStreak() >= 7 },
+  { id: 'garden',  name: '花园满员', emoji: '🌷', desc: '6 个花槽全部种满', check: s => s.garden.every(g => g.plant) },
+];
+
+// 花园槽位数量 & 植物生命值
+const GARDEN_SLOTS = 6;
+const PLANT_MAX_HEALTH = 3;
+
+// 僵尸行为参数（可调，不影响固定积分）
+const ZOMBIE = {
+  REACH_MINUTES: 15,   // 拖延多久僵尸会从远处走到花园
+  START_DISTANCE: 20,  // 每天初始距离（0=消失，100=抵达花园）
+  RETREAT_PER_TASK: 35,// 每完成一项任务，僵尸后退的距离
+  ATTACK_RESET: 55,    // 僵尸咬到植物后后退到的距离
+};
+
+const STORAGE_KEY = 'sunshine-garden-state-v1';
+
+/* ================================================================
+   2. Store —— 本地数据读写
+   ================================================================ */
+
+function todayStr() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+
+function prettyDate(dateKey) {
+  const [y, m, d] = dateKey.split('-');
+  return Number(m) + '月' + Number(d) + '日';
+}
+
+// 生成一份全新的初始状态
+function defaultState() {
+  return {
+    studentName: '',
+    dateKey: todayStr(),
+    balance: 0,          // 可用阳光
+    totalEarned: 0,      // 历史累计获得
+    totalSpent: 0,       // 历史累计消耗
+    todayEarned: 0,      // 今日获得
+    tasks: {
+      lianzi:  { done: false, doneAt: null },
+      kousuan: { done: false, doneAt: null },
+      yuedu:   { done: false, doneAt: null },
+    },
+    garden: Array.from({ length: GARDEN_SLOTS }, () => ({ plant: null, health: PLANT_MAX_HEALTH })),
+    zombie: { distance: ZOMBIE.START_DISTANCE, updatedAt: Date.now() },
+    rewardsOn: { tv: true, outing: true },
+    achievements: [],  // 已解锁成就（徽章）
+    pin: '1234',       // 家长密码（默认，家长模式下可修改）
+    records: [],       // 每日学习记录
+    redeemLog: [],     // 兑换记录
+  };
+}
+
+const Store = {
+  load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      const data = JSON.parse(raw);
+      // 用默认值补齐缺失字段（兼容旧版本数据结构）
+      return Object.assign(defaultState(), data);
+    } catch (e) {
+      return defaultState();
+    }
+  },
+  save(state) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('保存失败', e);
+    }
+  },
+};
+
+/* ================================================================
+   3. 运行时状态
+   ================================================================ */
+let state = Store.load();
+let parentMode = false;   // 家长模式（会话级，刷新后需重新验证）
+let modalMode = 'verify'; // 密码弹窗模式：verify=验证 / change=改密码
+
+/* ================================================================
+   4. 业务逻辑
+   ================================================================ */
+
+// 已完成任务数量
+function countDone() {
+  return TASKS.filter(t => state.tasks[t.id].done).length;
+}
+
+// 获得阳光
+function earn(points) {
+  state.balance += points;
+  state.totalEarned += points;
+  state.todayEarned += points;
+}
+
+// 扣回阳光（取消勾选时）
+function unearn(points) {
+  state.balance = Math.max(0, state.balance - points);
+  state.totalEarned = Math.max(0, state.totalEarned - points);
+  state.todayEarned = Math.max(0, state.todayEarned - points);
+}
+
+// 消耗阳光（种植 / 兑换）
+function spend(cost) {
+  state.balance = Math.max(0, state.balance - cost);
+  state.totalSpent += cost;
+}
+
+// 日期偏移（计算连续打卡天数用）
+function shiftDate(dateKey, deltaDays) {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + deltaDays);
+  return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+}
+
+// 计算连续打卡天数（今天尚未完成则从昨天往前数）
+function computeStreak() {
+  const todayKey = todayStr();
+  const todayRec = state.records.find(r => r.dateKey === todayKey);
+  let cursor = (todayRec && todayRec.finished) ? todayKey : shiftDate(todayKey, -1);
+  let streak = 0;
+  while (true) {
+    const rec = state.records.find(r => r.dateKey === cursor);
+    if (rec && rec.finished) { streak++; cursor = shiftDate(cursor, -1); }
+    else break;
+  }
+  return streak;
+}
+
+// 检查并解锁新成就
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(a => {
+    if (!state.achievements.includes(a.id) && a.check(state)) {
+      state.achievements.push(a.id);
+      showToast('🎖️ 解锁新成就：' + a.emoji + ' ' + a.name + '！');
+    }
+  });
+}
+
+// 把今天的完成情况同步进「每日学习记录」
+function syncTodayRecord() {
+  const dk = state.dateKey;
+  let rec = state.records.find(r => r.dateKey === dk);
+  const doneSnap = {};
+  TASKS.forEach(t => { doneSnap[t.id] = state.tasks[t.id].done; });
+  const finished = countDone() === TASKS.length;
+  if (rec) {
+    rec.done = doneSnap;
+    rec.earned = state.todayEarned;
+    rec.finished = finished;
+  } else {
+    state.records.push({
+      dateKey: dk, date: prettyDate(dk),
+      done: doneSnap, earned: state.todayEarned, finished,
+    });
+  }
+  state.records.sort((a, b) => (a.dateKey < b.dateKey ? 1 : -1));
+}
+
+// 统一提交：同步记录 → 保存 → 重新渲染
+function commit() {
+  syncTodayRecord();
+  checkAchievements();
+  Store.save(state);
+  renderAll();
+}
+
+// 每日重置：跨天时清空今日任务，保留花园/余额/历史记录
+function rolloverIfNeeded() {
+  if (state.dateKey === todayStr()) return false;
+  // 昨天的记录已在 syncTodayRecord 中自动留存
+  state.dateKey = todayStr();
+  state.todayEarned = 0;
+  state.tasks = { lianzi: { done: false, doneAt: null }, kousuan: { done: false, doneAt: null }, yuedu: { done: false, doneAt: null } };
+  state.zombie = { distance: ZOMBIE.START_DISTANCE, updatedAt: Date.now() };
+  Store.save(state);
+  return true;
+}
+
+// 勾选 / 取消任务
+function toggleTask(id) {
+  const t = TASKS.find(x => x.id === id);
+  const task = state.tasks[id];
+  const wasDone = task.done;
+  task.done = !task.done;
+  task.doneAt = task.done ? Date.now() : null;
+
+  if (task.done) {
+    earn(t.points);
+    // 完成作业 → 僵尸后退
+    state.zombie.distance = Math.max(0, state.zombie.distance - ZOMBIE.RETREAT_PER_TASK);
+    state.zombie.updatedAt = Date.now();
+  } else {
+    unearn(t.points);
+  }
+
+  commit();
+
+  if (task.done) {
+    floatSunlight('+' + t.points + ' ☀️');
+  }
+
+  // 全部完成 → 通关动画
+  if (countDone() === TASKS.length) {
+    celebrateAll();
+  }
+}
+
+// 种植植物
+function plant(type) {
+  const p = PLANTS[type];
+  if (state.balance < p.cost) {
+    showToast('☀️ 阳光不够啦，先完成作业赚阳光吧！');
+    shake(document.getElementById('sunPanel'));
+    return;
+  }
+  const slot = state.garden.find(s => !s.plant);
+  if (!slot) {
+    showToast('🌷 花园已经满满当当啦！');
+    return;
+  }
+  slot.plant = type;
+  slot.health = PLANT_MAX_HEALTH;
+  spend(p.cost);
+  commit();
+  showToast(p.emoji + ' ' + p.name + ' 种好啦！小狗在守护它～');
+}
+
+// 僵尸推进：根据拖延时间缓慢靠近，抵达后侵蚀植物
+function advanceZombie() {
+  const incomplete = TASKS.length - countDone();
+  const now = Date.now();
+  const elapsedSec = Math.max(0, (now - state.zombie.updatedAt) / 1000);
+  state.zombie.updatedAt = now;
+
+  // 全部完成 → 僵尸消失
+  if (incomplete === 0) {
+    state.zombie.distance = 0;
+    Store.save(state);
+    return false;
+  }
+  // 拖延 → 缓慢前进
+  if (elapsedSec > 0) {
+    const creep = (elapsedSec / (ZOMBIE.REACH_MINUTES * 60)) * 100;
+    state.zombie.distance = Math.min(100, state.zombie.distance + creep);
+  }
+  // 抵达花园 → 侵蚀植物
+  let attacked = false;
+  if (state.zombie.distance >= 100) {
+    attacked = attackPlant();
+  }
+  Store.save(state);
+  return attacked;
+}
+
+// 僵尸侵蚀植物
+function attackPlant() {
+  const slot = state.garden.find(s => s.plant);
+  let attacked = false;
+  if (slot) {
+    slot.health -= 1;
+    if (slot.health <= 0) {
+      const name = PLANTS[slot.plant].name;
+      slot.plant = null;
+      slot.health = 0;
+      showToast('😢 僵尸吃掉了一株' + name + '！快完成任务保护花园！');
+    } else {
+      showToast('🧟 僵尸咬了一口植物！抓紧完成作业！');
+    }
+    attacked = true;
+  } else {
+    showToast('🧟 僵尸在花园门口徘徊…… 快完成任务赶走它！');
+  }
+  state.zombie.distance = ZOMBIE.ATTACK_RESET;
+  state.zombie.updatedAt = Date.now();
+  return attacked;
+}
+
+// 兑换奖励
+function redeem(id) {
+  const r = REWARDS.find(x => x.id === id);
+  if (!state.rewardsOn[r.onKey]) return; // 已关闭
+  if (state.balance < r.cost) {
+    showToast('☀️ 阳光不够（还差 ' + (r.cost - state.balance) + ' 阳光），继续加油！');
+    shake(document.getElementById('sunPanel'));
+    return;
+  }
+  spend(r.cost);
+  state.redeemLog.push({ dateKey: todayStr(), name: r.name, cost: r.cost, at: Date.now() });
+  commit();
+  confetti();
+  showToast('🎉 兑换成功：' + r.name + '！去和爸爸妈妈兑现吧～');
+}
+
+// 开启/关闭奖励
+function toggleReward(id) {
+  const r = REWARDS.find(x => x.id === id);
+  state.rewardsOn[r.onKey] = !state.rewardsOn[r.onKey];
+  commit();
+}
+
+/* ================================================================
+   5. 渲染层
+   ================================================================ */
+
+function renderAll() {
+  renderHeader();
+  renderStreak();
+  renderParentMode();
+  renderSunlight();
+  renderTasks();
+  renderGarden();
+  renderZombie();
+  renderRewards();
+  renderAchievements();
+  renderRecords();
+}
+
+// 头部：问候语 + 姓名输入框回填
+function renderHeader() {
+  const name = state.studentName.trim();
+  const hour = new Date().getHours();
+  let period = '你好';
+  if (hour < 6) period = '夜深了';
+  else if (hour < 12) period = '早上好';
+  else if (hour < 18) period = '下午好';
+  else period = '晚上好';
+  const who = name ? name : '小朋友';
+  document.getElementById('greeting').textContent =
+    '🌞 ' + period + '，' + who + '！完成作业赚阳光，守护你的花园吧！';
+}
+
+// 连续打卡天数
+function renderStreak() {
+  const s = computeStreak();
+  const el = document.getElementById('streak');
+  el.textContent = s >= 1 ? '🔥 已连续打卡 ' + s + ' 天，继续保持！' : '';
+}
+
+// 家长模式按钮状态
+function renderParentMode() {
+  document.getElementById('parentBtn').textContent = parentMode ? '🔓 锁定家长模式' : '🔒 家长模式';
+  document.getElementById('changePinBtn').style.display = parentMode ? 'inline-block' : 'none';
+}
+
+function renderSunlight() {
+  document.getElementById('balance').textContent = state.balance;
+  document.getElementById('todayEarned').textContent = state.todayEarned;
+  document.getElementById('totalEarned').textContent = state.totalEarned;
+}
+
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+  TASKS.forEach(t => {
+    const task = state.tasks[t.id];
+    const card = document.createElement('div');
+    card.className = 'task-card' + (task.done ? ' done' : '');
+    card.innerHTML =
+      '<div class="task-emoji">' + t.emoji + '</div>' +
+      '<div class="task-info">' +
+        '<div class="task-name">' + t.name + '</div>' +
+        '<div class="task-points">完成 +' + t.points + ' ☀️</div>' +
+      '</div>' +
+      '<button class="task-check">' + (task.done ? '✅' : '⬜') + '</button>';
+    card.addEventListener('click', () => toggleTask(t.id));
+    list.appendChild(card);
+  });
+  document.getElementById('taskProgress').textContent = countDone();
+}
+
+function renderGarden() {
+  const grid = document.getElementById('gardenGrid');
+  grid.innerHTML = '';
+  state.garden.forEach(slot => {
+    const el = document.createElement('div');
+    el.className = 'slot' + (slot.plant ? ' filled' : '');
+    if (slot.plant) {
+      const p = PLANTS[slot.plant];
+      el.innerHTML =
+        '<div class="plant">' + p.emoji + '</div>' +
+        '<div class="plant-health">' + hearts(slot.health) + '</div>' +
+        '<div class="plant-name">' + p.name + '</div>';
+    } else {
+      el.innerHTML = '<div class="slot-empty">🕳️</div>';
+    }
+    grid.appendChild(el);
+  });
+
+  // 全部完成 → 花园繁茂（花朵蝴蝶动画层）
+  document.getElementById('garden').classList.toggle('bloom', countDone() === TASKS.length);
+
+  // 小狗守护台词
+  const done = countDone();
+  let msg = '汪！先完成一项作业，赚点阳光吧～';
+  if (done === 3) msg = '汪！今天全部完成啦，你真棒！🦴';
+  else if (done === 2) msg = '汪！就差最后一项，僵尸快被赶跑啦！';
+  else if (done === 1) msg = '汪！不错哦，继续加油～';
+  document.getElementById('dogBubble').textContent = msg;
+}
+
+function hearts(n) {
+  return '❤️'.repeat(n) + '🤍'.repeat(PLANT_MAX_HEALTH - n);
+}
+
+function renderZombie() {
+  const d = state.zombie.distance;
+  const zombie = document.getElementById('zombie');
+  zombie.style.left = d + '%';
+  zombie.style.opacity = d === 0 ? '0' : '1';
+  document.getElementById('threatFill').style.width = d + '%';
+
+  let msg;
+  if (d === 0) msg = '🎉 僵尸被赶跑啦！花园很安全！';
+  else if (d < 40) msg = '🌤️ 僵尸在远处，继续保持哦～';
+  else if (d < 70) msg = '⚠️ 僵尸在靠近！快完成作业！';
+  else msg = '🚨 僵尸快到花园啦！赶紧完成任务！';
+  document.getElementById('zombieMsg').textContent = msg;
+}
+
+function renderRewards() {
+  const list = document.getElementById('rewardList');
+  list.innerHTML = '';
+  REWARDS.forEach(r => {
+    const on = state.rewardsOn[r.onKey];
+    const card = document.createElement('div');
+    card.className = 'reward-card' + (on ? '' : ' off');
+    card.innerHTML =
+      '<div class="reward-head">' +
+        '<div class="reward-emoji">' + r.emoji + '</div>' +
+        '<div class="reward-name">' + r.name + '</div>' +
+      '</div>' +
+      '<div class="reward-desc">' + r.desc + '</div>' +
+      '<div class="reward-cost">☀️ ' + r.cost + ' 阳光</div>' +
+      '<div class="reward-actions">' +
+        '<button class="redeem"' + (on ? '' : ' disabled') + '>兑换</button>' +
+        '<button class="toggle' + (on ? ' on' : '') + '" title="' + (parentMode ? '开启/关闭' : '🔒 需家长密码') + '"></button>' +
+      '</div>';
+    card.querySelector('.redeem').addEventListener('click', () => redeem(r.id));
+    card.querySelector('.toggle').addEventListener('click', () => {
+      if (!parentMode) { requireParent(); return; }
+      toggleReward(r.id);
+    });
+    list.appendChild(card);
+  });
+
+  // 最近兑换记录（最多 3 条）
+  const logEl = document.getElementById('redeemLog');
+  const recent = state.redeemLog.slice(-3).reverse();
+  logEl.textContent = recent.length
+    ? '最近兑换：' + recent.map(x => x.name + '（' + prettyDate(x.dateKey) + '）').join('、')
+    : '';
+}
+
+// 成就徽章
+function renderAchievements() {
+  const list = document.getElementById('achievementList');
+  list.innerHTML = '';
+  ACHIEVEMENTS.forEach(a => {
+    const unlocked = state.achievements.includes(a.id);
+    const el = document.createElement('div');
+    el.className = 'badge' + (unlocked ? ' unlocked' : ' locked');
+    el.innerHTML =
+      '<div class="badge-emoji">' + a.emoji + '</div>' +
+      '<div class="badge-name">' + a.name + '</div>';
+    el.title = a.desc;
+    list.appendChild(el);
+  });
+}
+
+function renderRecords() {
+  const list = document.getElementById('recordsList');
+  list.innerHTML = '';
+  const recs = state.records.slice(0, 14); // 最近 14 天
+  if (recs.length === 0) {
+    list.innerHTML = '<li style="color:#9aa8b8;">还没有记录，今天开始打卡吧！</li>';
+    return;
+  }
+  recs.forEach(r => {
+    const doneCount = Object.values(r.done).filter(Boolean).length;
+    const li = document.createElement('li');
+    li.innerHTML =
+      '<span class="rec-date">' + r.date + '</span>' +
+      '<span class="rec-done">完成 ' + doneCount + '/3</span>' +
+      '<span class="rec-badge ' + (r.finished ? 'finish' : 'part') + '">' + (r.finished ? '全部完成' : '部分完成') + '</span>' +
+      '<span class="rec-earn">+ ' + r.earned + ' ☀️</span>';
+    list.appendChild(li);
+  });
+}
+
+/* ================================================================
+   6. 反馈动画
+   ================================================================ */
+
+let toastTimer = null;
+function showToast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// —— 家长模式 & 密码弹窗 ——
+function requireParent() {
+  openPinModal('verify');
+}
+
+function openPinModal(mode) {
+  modalMode = mode;
+  document.getElementById('modalTitle').textContent = mode === 'verify' ? '🔒 家长验证' : '🔒 设置新密码';
+  const input = document.getElementById('pinInput');
+  input.value = '';
+  input.placeholder = mode === 'verify' ? '输入家长密码' : '输入新密码（至少 4 位）';
+  document.getElementById('modalMask').classList.add('show');
+  input.focus();
+}
+
+function closePinModal() {
+  document.getElementById('modalMask').classList.remove('show');
+}
+
+function onModalOk() {
+  const val = document.getElementById('pinInput').value.trim();
+  if (modalMode === 'verify') {
+    if (val === state.pin) {
+      parentMode = true;
+      closePinModal();
+      showToast('✅ 家长模式已开启');
+      renderAll();
+    } else {
+      showToast('❌ 密码不对哦');
+      shake(document.getElementById('pinInput'));
+    }
+  } else {
+    if (val.length < 4) { showToast('密码至少 4 位'); return; }
+    state.pin = val;
+    Store.save(state);
+    closePinModal();
+    showToast('✅ 家长密码已修改');
+  }
+}
+
+// 完成任务时，阳光数值向上漂浮
+function floatSunlight(text) {
+  const panel = document.getElementById('sunPanel');
+  const el = document.createElement('div');
+  el.className = 'float-sun';
+  el.textContent = text;
+  panel.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
+  // 阳光面板脉冲
+  const stat = panel.querySelector('.big');
+  stat.classList.remove('pulse');
+  void stat.offsetWidth; // 强制重排以重启动画
+  stat.classList.add('pulse');
+}
+
+// 撒花彩带
+function confetti() {
+  const container = document.getElementById('celebration');
+  const colors = ['#ffd23f', '#7bc96f', '#ff8fab', '#8ecae6', '#b5838d', '#f5a623'];
+  for (let i = 0; i < 90; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.background = colors[i % colors.length];
+    p.style.animationDelay = Math.random() * 0.6 + 's';
+    p.style.animationDuration = (2 + Math.random() * 2) + 's';
+    p.style.width = p.style.height = (8 + Math.random() * 8) + 'px';
+    container.appendChild(p);
+    setTimeout(() => p.remove(), 5000);
+  }
+}
+
+// 抖动提示
+function shake(el) {
+  el.classList.remove('shake');
+  void el.offsetWidth;
+  el.classList.add('shake');
+}
+
+// 全部完成 → 通关庆祝
+function celebrateAll() {
+  confetti();
+  showToast('🎉 太棒了！全部任务完成，僵尸被赶跑啦！');
+}
+
+/* ================================================================
+   7. 初始化
+   ================================================================ */
+
+function init() {
+  // 1. 姓名输入框
+  const nameInput = document.getElementById('nameInput');
+  nameInput.value = state.studentName;
+  nameInput.addEventListener('input', () => {
+    state.studentName = nameInput.value;
+    Store.save(state);
+    renderHeader();
+  });
+
+  // 2. 种植按钮
+  document.getElementById('plantSunflower').addEventListener('click', () => plant('sunflower'));
+  document.getElementById('plantPea').addEventListener('click', () => plant('pea'));
+
+  // 3. 重置数据（需家长模式）
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (!parentMode) { requireParent(); return; }
+    if (confirm('确定要清空所有数据、重新开始吗？')) {
+      state = defaultState();
+      parentMode = false;
+      nameInput.value = '';
+      commit();
+      showToast('已重置，全新开始！');
+    }
+  });
+
+  // 4. 家长模式 & 密码弹窗
+  document.getElementById('parentBtn').addEventListener('click', () => {
+    if (parentMode) {
+      parentMode = false;
+      showToast('已锁定家长模式');
+      renderAll();
+    } else {
+      openPinModal('verify');
+    }
+  });
+  document.getElementById('changePinBtn').addEventListener('click', () => openPinModal('change'));
+  document.getElementById('modalOk').addEventListener('click', onModalOk);
+  document.getElementById('modalCancel').addEventListener('click', closePinModal);
+  document.getElementById('modalMask').addEventListener('click', e => { if (e.target.id === 'modalMask') closePinModal(); });
+  document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') onModalOk(); });
+
+  // 5. 每日重置 + 首次渲染
+  rolloverIfNeeded();
+  advanceZombie();     // 载入时结算离开期间的拖延时间
+  checkAchievements(); // 载入时结算成就
+  renderAll();
+
+  // 6. 定时器：僵尸缓慢推进（每 4 秒结算一次）
+  setInterval(() => {
+    const attacked = advanceZombie();
+    renderZombie();
+    if (attacked) {
+      renderGarden();
+      renderSunlight();
+    }
+  }, 4000);
+}
+
+init();
+</script>
+</body>
+</html>
